@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import socket from "../socket";
 
 type Player = {
@@ -18,23 +18,32 @@ function Lobby() {
   const navigate = useNavigate();
   const [players, setPlayers] = useState<Player[]>([]);
 
-  // useRef para que no se reinicie entre renderizaciones
-  const isCreatorRef = useRef(localStorage.getItem("isCreator") === "true");
-  const isCreator = isCreatorRef.current;
+  const [isCreator, setIsCreator] = useState(false);
+
+  useEffect(() => {
+    const value = localStorage.getItem("isCreator") === "true";
+    setIsCreator(value);
+  }, []);
 
   // Obtener jugadores actuales y suscribirse al lobby
   useEffect(() => {
     if (!lobbyId) return;
 
+    console.log("👉 PIN usado para fetch:", lobbyId);
+
     socket.emit("watchLobby", { pin: lobbyId });
 
     fetch(`http://localhost:4000/api/lobbies/${lobbyId}`)
       .then((res) => res.json())
-      .then((players: Player[]) => {
-        setPlayers(players);
+      .then((playersFromFetch: Player[]) => {
+        console.log("✅ Jugadores desde fetch:", playersFromFetch);
+        if (playersFromFetch.length > 0) {
+          setPlayers(playersFromFetch);
+        }
       });
 
     socket.on("lobby:update", (updatedPlayers: Player[]) => {
+      console.log("📡 Jugadores desde socket:", updatedPlayers);
       setPlayers(updatedPlayers);
     });
 
@@ -42,16 +51,21 @@ function Lobby() {
       alert("❌ " + err.message);
     });
 
+    console.log("🔎 isCreator:", isCreator);
+    console.log("🎮 players:", players.length);
+
     return () => {
       socket.off("lobby:update");
       socket.off("lobby:error");
     };
   }, [lobbyId]);
 
+  console.log(players);
+
   // Escuchar cuando el juego empieza
   useEffect(() => {
-    socket.on("game:started", () => {
-      navigate(`/game/${lobbyId}`);
+    socket.on("game:started", ({ players }) => {
+      navigate(`/game/${lobbyId}`, { state: { players } });
     });
 
     return () => {
@@ -71,7 +85,8 @@ function Lobby() {
               key={player.Player_id}
               className="bg-slate-600 p-2 rounded-md text-center"
             >
-              {player.Player_name} — {player.Warrior.Warrior_name}
+              {player.Player_name} —{" "}
+              {player.Warrior?.Warrior_name ?? "Sin guerrero"}
             </li>
           ))}
         </ul>

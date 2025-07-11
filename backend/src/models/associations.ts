@@ -13,10 +13,6 @@ export const applyAssociations = () => {
   Player.belongsTo(Warrior, { foreignKey: "Warrior_id" });
   Warrior.hasMany(Player, { foreignKey: "Warrior_id" });
 
-  // Player N‑1 Warrior
-  Warrior.hasMany(Player, { foreignKey: "Warrior_id" });
-  Player.belongsTo(Warrior, { foreignKey: "Warrior_id" });
-
   // Warrior N‑N Power
   Warrior.hasMany(WarriorPower, { foreignKey: "Warrior_id" });
   WarriorPower.belongsTo(Warrior, { foreignKey: "Warrior_id" });

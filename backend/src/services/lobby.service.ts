@@ -10,25 +10,27 @@ export const createLobby = async () => {
 };
 
 export const getLobby = async (pin: string) => {
-  // 1) localiza el juego por su pin
   const game = await Game.findOne({ where: { Game_pin: pin } });
   if (!game) throw new Error("Lobby no encontrado");
 
-  // 2) consulta todos los players que pertenecen a ese lobby
-  return await Player.findAll({
+  const players = await Player.findAll({
     include: [
       {
         model: PlayerGame,
         where: { Game_id: game.Game_id },
-        attributes: [], // se ocultan columnas puente
+        attributes: [],
       },
       {
-        model: Warrior, // incluimos los datos del guerrero
+        model: Warrior,
         attributes: ["Warrior_name", "Warrior_ki", "Warrior_health"],
+        required: true,
       },
     ],
     attributes: ["Player_id", "Player_name", "Warrior_id"],
+    raw: false,
+    nest: true,
   });
+  return players;
 };
 
 // Un jugador se une al lobby y devolvemos el estado completo de la sala
