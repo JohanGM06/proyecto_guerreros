@@ -1,10 +1,18 @@
 import type { Server } from "socket.io";
 import { joinLobby } from "../services/lobby.service";
+import { createLobby } from "../services/lobby.service";
 import { Game, Player, PlayerGame } from "../models";
 
 export default (io: Server) => {
   io.on("connection", (socket) => {
     console.log("🧩 Cliente conectado");
+
+    socket.on("createLobby", async () => {
+      const result = await createLobby();
+      socket.join(result.pin);
+      socket.emit("lobbyCreated", { lobbyId: result.pin });
+      console.log("📢 Lobby creado con PIN:", result.pin);
+    });
 
     socket.on("joinLobby", async ({ pin, name, warriorId }) => {
       try {
@@ -23,7 +31,7 @@ export default (io: Server) => {
     });
 
     socket.on("watchLobby", ({ pin }) => {
-      socket.join(pin); // ✅ CORRECTO
+      socket.join(pin);
     });
 
     socket.on("startGame", async ({ pin }) => {

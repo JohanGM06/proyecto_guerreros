@@ -3,14 +3,12 @@ import { Game, Player, PlayerGame, Warrior } from "../models";
 import { sequelize } from "../config/database";
 import { generatePin } from "../utils/pin";
 
-/** Crea un lobby nuevo y devuelve el PIN */
 export const createLobby = async () => {
   const pin = generatePin();
   await Game.create({ Game_pin: pin });
   return { pin };
 };
 
-/** Devuelve la lista de jugadores en un lobby dado su PIN */
 export const getLobby = async (pin: string) => {
   // 1) localiza el juego por su pin
   const game = await Game.findOne({ where: { Game_pin: pin } });
@@ -22,10 +20,10 @@ export const getLobby = async (pin: string) => {
       {
         model: PlayerGame,
         where: { Game_id: game.Game_id },
-        attributes: [], // ocultamos columnas puente
+        attributes: [], // se ocultan columnas puente
       },
       {
-        model: Warrior, // incluimos datos del guerrero
+        model: Warrior, // incluimos los datos del guerrero
         attributes: ["Warrior_name", "Warrior_ki", "Warrior_health"],
       },
     ],
@@ -33,7 +31,7 @@ export const getLobby = async (pin: string) => {
   });
 };
 
-/** Un jugador se une al lobby y devolvemos el estado completo de la sala */
+// Un jugador se une al lobby y devolvemos el estado completo de la sala
 export const joinLobby = async (
   pin: string,
   name: string,

@@ -14,7 +14,7 @@ export const sequelize = new Sequelize({
     timestamps: false,
   },
   dialectOptions: {
-    // evita warnings de zona horaria
+    // evita warnings de zona horaria, por si las moscas
     timezone: "Z",
   },
 });
